@@ -3,6 +3,9 @@
 // Author: Jelena Kocic
 // Date: 25.06.2017.
 
+// This code is result of learning from Udacity SDCND, Term 2, Lesson 19
+// and "Self-Driving Car Project Q&A | MPC Controller" youtube instructions
+
 #include "MPC.h"
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
@@ -14,7 +17,7 @@ using CppAD::AD;
 // Large N is computationally difficult
 // Prediction horizon is T = N * dt = 1s
 size_t N = 10;
-double dt = 0.1;
+double dt = 0.07;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -31,7 +34,7 @@ const double Lf = 2.67;
 
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 100;
+double ref_v = 120;
 
 // set initial variable values
 size_t x_start = 0;
@@ -59,7 +62,7 @@ class FG_eval
 	fg[0] = 0;
 	
 	// Reference State Cost
-	for(int i = 0; i < N; i++)
+	for(unsigned int i = 0; i < N; i++)
 	{
 	  fg[0] += 2000 * CppAD::pow(vars[cte_start + i] - ref_cte, 2);
 	  fg[0] += 2000 * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
@@ -67,14 +70,14 @@ class FG_eval
 	}
 	
 	// Minimize the use of acutators
-	for(int i = 0; i < N - 1; i++)
+	for(unsigned int i = 0; i < N - 1; i++)
 	{
 	  fg[0] += 5 * CppAD::pow(vars[delta_start + i], 2);
 	  fg[0] += 5 * CppAD::pow(vars[a_start + i], 2);
 	}
 	
 	// Minimize the value gap between sequential actuations
-	for(int i = 0; i < N - 2; i++)
+	for(unsigned int i = 0; i < N - 2; i++)
 	{
 	  fg[0] += 200 * CppAD::pow(vars[delta_start + i +1] - vars[delta_start + i], 2);
 	  fg[0] += 10 * CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
@@ -92,7 +95,7 @@ class FG_eval
 	fg[1 + epsi_start] = vars[epsi_start];
 	
 	// the rest of the constraints
-	for (int t = 1; t < N ; t++) 
+	for (unsigned int t = 1; t < N ; t++) 
 	{
 	  // at time t
 	  AD<double> x0 = vars[x_start + t - 1];
@@ -135,7 +138,6 @@ MPC::~MPC() {}
 vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) 
 {
   bool ok = true;
-  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   
   //setting up the variables  
@@ -159,7 +161,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
-  for (int i = 0; i < n_vars; i++) 
+  for (unsigned int i = 0; i < n_vars; i++) 
   {
     vars[i] = 0;
   }
@@ -168,19 +170,19 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   Dvector vars_upperbound(n_vars);
   
   // Set lower and upper limits for variables.
-  for(int i = 0; i < delta_start; i++)
+  for(unsigned int i = 0; i < delta_start; i++)
   {
 	vars_lowerbound[i] = -1.0e19;
 	vars_upperbound[i] = 1.0e19;
   }
   
-  for (int i = delta_start; i < a_start; i++) 
+  for (unsigned int i = delta_start; i < a_start; i++) 
   {
     vars_lowerbound[i] = -0.436332 * Lf;
     vars_upperbound[i] = 0.436332 * Lf;
   }
   
-  for (int i = a_start; i < n_vars; i++) 
+  for (unsigned int i = a_start; i < n_vars; i++) 
   {
     vars_lowerbound[i] = -1.0;
     vars_upperbound[i] = 1.0;
@@ -189,7 +191,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
 
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; i++) 
+  for (unsigned int i = 0; i < n_constraints; i++) 
   {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
@@ -260,7 +262,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   
   // grabbing soulutins x and y coordinats
   // and from that we know where car is going to be in future
-  for(int i = 0; i < N-1; i++)
+  for(unsigned int i = 0; i < N-1; i++)
   {
 	result.push_back(solution.x[x_start + i + 1]);
     result.push_back(solution.x[y_start + i + 1]);

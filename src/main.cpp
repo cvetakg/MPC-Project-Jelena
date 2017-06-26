@@ -3,6 +3,9 @@
 // Author: Jelena Kocic
 // Date: 25.06.2017.
 
+// This code is result of learning from Udacity SDCND, Term 2, Lesson 19
+// and "Self-Driving Car Project Q&A | MPC Controller" youtube instructions
+
 #include <math.h>
 #include <uWS/uWS.h>
 #include <chrono>
@@ -51,8 +54,7 @@ double polyeval(Eigen::VectorXd coeffs, double x)
 // Fit a polynomial.
 // Adapted from
 // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
-Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
-                        int order) 
+Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals, int order) 
 {
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
@@ -110,13 +112,13 @@ int main() {
 		  double Lf = 2.67;		
 		  
 		  //Latency
-	/*	  double latency = 0.1;
+		  double latency = 0.1;
           px = px + v * cos(psi) * latency;
           py = py + v * sin(psi) * latency;
           psi = psi - v*steer_value/Lf*latency; // negative steering!
 		  v += throttle_value*latency;
-	*/	  
-		  for(int i = 0; i < ptsx.size(); i++)
+		  
+		  for(unsigned int i = 0; i < ptsx.size(); i++)
 		  {
 			// simplification
 			// shift car reference angle to 90 degrees
@@ -125,7 +127,7 @@ int main() {
 			double shift_y = ptsy[i] - py;
 			
 			ptsx[i] = (shift_x * cos(0 - psi) - shift_y * sin(0 - psi));
-			ptsy[i] = (shift_x * sin(0 - psi) - shift_y * cos(0 - psi));
+			ptsy[i] = (shift_x * sin(0 - psi) + shift_y * cos(0 - psi));
 		  }
 		  
 		  double *ptrx = &ptsx[0];
@@ -141,8 +143,7 @@ int main() {
 		  double epsi = -atan(coeffs[1]);
 
 
-
-		  
+	  
 		  Eigen::VectorXd state(6);
 		  state << 0, 0, 0, v, cte, epsi;
 		 // state << ptsx_transform(0), ptsy_transform(0), psi, v, cte, epsi;
@@ -171,7 +172,7 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 		  
-		  for(int i = 2; i < vars.size(); i++)
+		  for(unsigned int i = 2; i < vars.size(); i++)
 		  {
 			if(i % 2 == 0)
 			{
@@ -182,15 +183,13 @@ int main() {
 			  mpc_y_vals.push_back(vars[i]);
 			}
 		  }
+		   
 		  
-		  
-		  
-
           json msgJson;
 		  
           // Divide steering_angle by deg2rad(25) before sending steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = vars[0] / (deg2rad(25) * Lf);
+          msgJson["steering_angle"] = - vars[0] / (deg2rad(25) * Lf);
           msgJson["throttle"] = vars[1];
 
 
@@ -207,8 +206,8 @@ int main() {
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 		  
-		  state << vars[0], vars[1], vars[2], vars[3], vars[4], vars[5];
-		  std::cout << state << std::endl;
+		  //state << vars[0], vars[1], vars[2], vars[3], vars[4], vars[5];
+		  //std::cout << state << std::endl;
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
