@@ -17,7 +17,7 @@ using CppAD::AD;
 // Large N is computationally difficult
 // Prediction horizon is T = N * dt = 1s
 size_t N = 10;
-double dt = 0.07;
+double dt = 0.09;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -34,7 +34,7 @@ const double Lf = 2.67;
 
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 120;
+double ref_v = 90;
 
 // set initial variable values
 size_t x_start = 0;
